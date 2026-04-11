@@ -5,6 +5,8 @@ The Recipe Assistant Web Application is a full-stack Django-based platform desig
 
 This project demonstrates strong backend development, data handling, and user authentication systems, alongside responsive frontend design.
 
+A full-stack Django application that delivers intelligent, step-by-step cooking guidance using structured data and AI integration.
+
 ---
 
 ## 🛠️ Tech Stack
@@ -43,6 +45,11 @@ This project demonstrates strong backend development, data handling, and user au
 - Designing responsive user interfaces
 
 ---
+## 📸 Screenshots
+
+![Homepage](images/home.png)
+![Login](images/login.png)
+![signup](images/recipe.png)
 
 ## ▶️ How to Run the Project
 
