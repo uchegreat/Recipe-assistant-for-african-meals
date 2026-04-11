@@ -1,23 +1,24 @@
 from django.core.mail import send_mail
 from django.conf import settings
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_str
-from django.template.loader import render_to_string
-from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth import get_user_model
-from django.urls import reverse
 
-User = get_user_model()
+def send_verification_email(user, token):
+    try:
+        if not user.email:
+            print("❌ ERROR: User does not have an email!")
+            return
+        
+        subject = "Verify Your Email"
+        message = f"Click the link to verify your account: http://127.0.0.1:8000/api/auth/verify/{token}/"
+        
+        print(f" Attempting to send email to: {user.email}")  # Debugging
+        email_sent = send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email], fail_silently=False)
 
-def send_verification_email(user, request):
-    token = default_token_generator.make_token(user)
-    uid = urlsafe_base64_encode(force_bytes(user.pk))
+        if email_sent:
+            print(f" Verification email sent successfully to: {user.email}")
+        else:
+            print(" Failed to send verification email.")
 
-    verification_link = request.build_absolute_uri(
-        reverse("verify_email", kwargs={"uidb64": uid, "token": token})
-    )
+    except Exception as e:
+        print(" Error while sending verification email:", e)
 
-    subject = "Confirm Your Recipe Assistant Account"
-    message = render_to_string("emails/verification_email.html", {"user": user, "verification_link": verification_link})
 
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])

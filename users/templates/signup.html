@@ -5,42 +5,75 @@
     <div class="card p-4 shadow-lg" style="width: 400px; background-color: #fff; border-radius: 10px;">
         <h3 class="text-center mb-4" style="color: #333;">Create an Account</h3>
 
-        <form method="POST" action="{% url 'home' %}">  
+        <form id="signupForm">
             {% csrf_token %}
-            
-            <!-- Username -->
+
             <div class="mb-3">
                 <label for="username" class="form-label" style="color: #333;">Username</label>
-                <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required>
+                <input type="text" class="form-control" id="username" required>
             </div>
 
-            <!-- Email -->
             <div class="mb-3">
                 <label for="email" class="form-label" style="color: #333;">Email</label>
-                <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
+                <input type="email" class="form-control" id="email" required>
             </div>
 
-            <!-- Create Password -->
             <div class="mb-3">
                 <label for="password" class="form-label" style="color: #333;">Create Password</label>
-                <input type="password" class="form-control" id="password" name="password" placeholder="Create a password" required>
+                <input type="password" class="form-control" id="password" required>
             </div>
 
-            <!-- Confirm Password -->
             <div class="mb-3">
-                <label for="confirm_password" class="form-label" style="color: #333;">Confirm Password</label>
-                <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm your password" required>
+                <label for="confirm-password" class="form-label" style="color: #333;">Confirm Password</label>
+                <input type="password" class="form-control" id="confirm-password" required>
             </div>
 
-            <!-- Sign Up Button -->
-            <button type="submit" class="btn w-100" style="background-color: #ff8c00; color: white; font-weight: bold; border-radius: 5px;">Enter</button>
+            <button type="button" class="btn w-100" style="background-color: #ff8c00; color: white; font-weight: bold; border-radius: 5px;" onclick="signupUser()">Sign Up</button>
 
-            <!-- Already have an account? -->
-            <div class="mt-3 text-center">
+            <!-- ✅ Hide Login Link when Signing Up -->
+            <div id="login-link" class="mt-3 text-center">
                 <span style="color: #333;">Already have an account?</span>
                 <a href="{% url 'login' %}" style="color: #007bff; text-decoration: none; font-weight: bold;">Login</a>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+    function signupUser() {
+        document.getElementById('login-link').style.display = 'none'; // ✅ Hide login link
+
+        fetch('/api/auth/register/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: document.getElementById('username').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                alert(" Signup successful! Please check your email for verification.");
+                window.location.href = "{% url 'login' %}";  // Redirect to login
+            } else {
+                alert(" Signup failed: " + JSON.stringify(data));
+                document.getElementById('login-link').style.display = 'block'; //  Show login link again if failed
+            }
+        });
+    }
+
+    //  Hide login button on the signup page
+    document.addEventListener("DOMContentLoaded", function() {
+        if (window.location.pathname.includes("signup")) {
+            const loginBtn = document.getElementById("login-button");
+            if (loginBtn) loginBtn.style.display = "none";
+        }
+    });
+</script>
+
 {% endblock %}
+
+
+

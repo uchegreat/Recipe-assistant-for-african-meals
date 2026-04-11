@@ -1,23 +1,66 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1 class="welcome-text">Welcome to Recipe Bot for African Meals!</h1>
+<h1 class="welcome-text">Welcome to Recipe Bot for African Meals!</h1>
 
-    <div class="d-flex justify-content-center align-items-center mb-4">
-        <h3 class="mb-4 me-3">What meal can I help you with?</h3>
-        <i class="fas fa-utensils icon-size"></i>
+<div class="d-flex justify-content-center align-items-center mb-4">
+    <h3 class="mb-4 me-3">What African meal can I help you with?</h3>
+    <i class="fas fa-utensils icon-size"></i>
+</div>
+
+<div class="search-card">
+    <div class="input-group mb-4">
+        <input type="text" id="meal-input" class="form-control form-control-lg" placeholder="Enter African meal name..." aria-label="Meal Search">
+        <button class="btn btn-primary btn-lg" id="search-btn">Search</button>
     </div>
+</div>
 
-    <div class="search-card">
-        <div class="input-group mb-4">
-            <input type="text" class="form-control form-control-lg" placeholder="Enter meal name..." aria-label="Meal Search">
-            <button class="btn btn-primary btn-lg">Search</button>
-        </div>
+<div id="chatbot-response" class="mt-4 p-3 border rounded bg-light" style="display: none;">
+    <h5>Recipe Instructions:</h5>
+    <p id="response-text"></p>
+</div>
+
+{% if user.is_authenticated %}
+    <div class="text-center mt-3">
+        <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
     </div>
+{% endif %}
 
-    {% if user.is_authenticated %}
-        <div class="text-center mt-3">
-            <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
-        </div>
-    {% endif %}
+<script>
+    document.getElementById("search-btn").addEventListener("click", function() {
+        var mealName = document.getElementById("meal-input").value.trim();
+        if (!mealName) {
+            alert("Please enter an African meal name.");
+            return;
+        }
+
+        fetch("/api/chatbot/chat/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ message: "How do I make " + mealName + "?" })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.reply) {
+                document.getElementById("response-text").innerText = data.reply;
+                document.getElementById("chatbot-response").style.display = "block";
+            } else {
+                document.getElementById("response-text").innerText = "Sorry, I can only assist with African meals.";
+                document.getElementById("chatbot-response").style.display = "block";
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            document.getElementById("response-text").innerText = "An error occurred. Please try again.";
+        });
+    });
+</script>
 {% endblock %}
+
+
+
+
+
+

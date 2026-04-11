@@ -1,65 +1,65 @@
-from django.shortcuts import render, redirect
 from django.contrib.auth import get_user_model
-from django.contrib import messages
-from .utils import send_verification_email  # Import email function
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_decode
-from django.utils.encoding import force_str
-
-# ✅ Simple Login View
-def login_view(request):
-    return render(request, "login.html")
-
-# ✅ Simple Signup View 
-def signup(request):
-    return render(request, "signup.html")
-
-def home(request):
-    return render(request, 'index.html')
-
-
-
+from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework import status
+import uuid
+from .serializers import RegisterSerializer
+from .utils import send_verification_email
+from django.contrib.auth import authenticate
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import User
 
 User = get_user_model()
 
-def signup(request):
-    if request.method == "POST":
-        username = request.POST["username"]
-        email = request.POST["email"]
-        password = request.POST["password"]
-        confirm_password = request.POST["confirm_password"]
+# Store verification tokens
+verification_tokens = {}
 
-        if password == confirm_password:
-            if User.objects.filter(email=email).exists():
-                messages.error(request, "Email already registered.")
-            else:
-                user = User.objects.create_user(username=username, email=email, password=password)
-                user.is_active = False  # User is inactive until email is verified
-                user.save()
+# User Registration View
+@api_view(['POST'])
+def register_user(request):
+    serializer = RegisterSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        user = serializer.save()
+        token = str(uuid.uuid4())  # Generate unique verification token
+        verification_tokens[token] = user.id  # Store token
 
-                send_verification_email(user, request)  # ✅ Send email
+        print(f"🔎 Debug: User {user.username} - Email: {user.email}")  # Debugging
+        send_verification_email(user, token)  # Send verification email
 
-                messages.success(request, "Account created! Please check your email to verify your account.")
-                return redirect("login")
-        else:
-            messages.error(request, "Passwords do not match.")
+        return Response({'message': 'User registered successfully. Check your email to verify your account.'}, status=status.HTTP_201_CREATED)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    return render(request, "signup.html")
+# Email Verification View
+@api_view(['GET'])
+def verify_email(request, token):
+    user_id = verification_tokens.get(token)
 
-
-def verify_email(request, uidb64, token):
-    try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        user = None
-
-    if user and default_token_generator.check_token(user, token):
-        user.is_active = True  # ✅ Activate user account
+    if user_id:
+        user = User.objects.get(id=user_id)
+        user.is_verified = True
         user.save()
-        messages.success(request, "Your account has been verified! You can now log in.")
-        return redirect("login")
-    else:
-        messages.error(request, "Invalid or expired verification link.")
-        return redirect("signup")
+        del verification_tokens[token]  # Remove token after verification
+        return Response({'message': 'Email verified successfully. You can now log in.'}, status=status.HTTP_200_OK)
 
+    return Response({'error': 'Invalid or expired token'}, status=status.HTTP_400_BAD_REQUEST)
+
+@csrf_exempt  #  Disable CSRF protection for this API
+@api_view(['POST'])
+def login_user(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+
+    user = authenticate(username=username, password=password)
+
+    if user:
+        if not user.is_verified:
+            return Response({'error': 'Account not verified. Check your email.'}, status=status.HTTP_403_FORBIDDEN)
+
+        token, created = Token.objects.get_or_create(user=user)
+
+        return Response({'message': 'Login successful', 'token': token.key}, status=status.HTTP_200_OK)
+
+    return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
