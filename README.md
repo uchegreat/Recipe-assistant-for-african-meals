@@ -42,9 +42,9 @@ Ask how to make a dish and the assistant returns ingredients and step-by-step in
 ![Recipe response for Jollof Rice](images/recipe-response.png)
 
 ### Off-topic question redirected
-Questions unrelated to African cuisine are politely redirected back to African dishes.
+Requests for non-African dishes are politely redirected, with African alternatives suggested instead.
 
-![Off-topic question redirected](images/off-topic.png)
+![Non-African dish request redirected](images/off-topic.png)
 
 ### Sign up and log in
 
@@ -156,6 +156,3 @@ Open http://127.0.0.1:8000 in your browser.
 ## 👤 Author
 
 **Uche**: [GitHub](https://github.com/<your-username>) · [LinkedIn](https://linkedin.com/in/<your-profile>)
-
-
-
