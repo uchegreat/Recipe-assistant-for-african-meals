@@ -36,15 +36,15 @@ A Django web app that gives step-by-step cooking instructions for African dishes
 
 <!-- Add your new screenshots below. Save them in the images/ folder and uncomment the lines. -->
 
-<!--
 ### Recipe response
-![Recipe response for Jollof Rice](images/recipe-response.png)
--->
+Ask how to make a dish and the assistant returns ingredients and step-by-step instructions.
 
-<!--
+![Recipe response for Jollof Rice](images/recipe-response.png)
+
 ### Off-topic question redirected
-![Non-African meal redirected](images/off-topic.png)
--->
+Questions unrelated to African cuisine are politely redirected back to African dishes.
+
+![Off-topic question redirected](images/off-topic.png)
 
 ### Sign up and log in
 
@@ -156,3 +156,6 @@ Open http://127.0.0.1:8000 in your browser.
 ## 👤 Author
 
 **Uche**: [GitHub](https://github.com/<your-username>) · [LinkedIn](https://linkedin.com/in/<your-profile>)
+
+
+
